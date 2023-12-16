@@ -14,28 +14,6 @@ import math
 
 
 #%%Function
-def PolyFit(xi, yi, n):
-    # Create the Vandermonde matrix
-    A = np.vander(xi, n+1)
-
-    # Solve the least squares problem using the matrix method
-    p, residuals, _, _ = np.linalg.lstsq(A, yi, rcond=None)
-
-    return p
-
-def PolyVal(p, xi):
-    # TODO
-    number = len(xi)
-    n = len(p)-1
-    A = np.ones((number,n+1))
-    A[:,0] = np.ones((1,len(xi)))
-    for i in range(1,n+1):
-        for j in range(len(A)):
-            A[j,i] = math.pow(xi[j],i)
-    # print(A)
-    p = p[::-1]
-    yi  = A@p
-    return yi
 
 def coordinate_transformation(data):
     data = np.array(data)
@@ -65,9 +43,9 @@ def get_segment_com_fit(time, Data1, Data2):
     x = (data1[:,0]+data2[:,0])/2
     y = (data1[:,1]+data2[:,1])/2
     z = (data1[:,2]+data2[:,2])/2
-    x = np.polyval(np.polyfit(Time,x,order), time[frame[0]:frame[1]])
-    y = np.polyval(np.polyfit(Time,y,order), time[frame[0]:frame[1]])
-    z = np.polyval(np.polyfit(Time,z,order), time[frame[0]:frame[1]])
+    x = np.polyval(np.polyfit(Time,x,order), time)
+    y = np.polyval(np.polyfit(Time,y,order), time)
+    z = np.polyval(np.polyfit(Time,z,order), time)
     com = np.array([x,y,z])
     return com.T
 
@@ -77,7 +55,7 @@ def plot_com(Time, data1, data2, frame, name = '', plot = False):
         fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
         ax.set_title(name)
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],0], label='x')
-        ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],1], label='y')
+        ax.plot(Time, com[:,1], label='y')
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
         ax.legend()
         ax.set_xlim(frame[0],frame[1]-50)
@@ -86,30 +64,31 @@ def plot_com(Time, data1, data2, frame, name = '', plot = False):
 
 def plot_com_fit(Time, data1, data2, frame, name = '', plot = False):
     com = get_segment_com_fit(Time,data1, data2)
-    com = data_correction(Time, com)
+    com, center = data_correction(Time, com, plot = False)
     if plot:
         fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
         ax.set_title(name+'_fit')
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],0], label='x')
-        ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],1], label='y')
+        ax.plot(Time, com[:,1], label='y')
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
         ax.legend()
-        ax.set_xlim(frame[0],frame[1]-50)
+        ax.set_xlim(frame[0],frame[1])
         ax.set_ylim(-100, 100)
-    return com
+    return com, center
 
-def data_correction(Time, data):
-    center = [np.polyval(np.polyfit(Time[frame[0]:frame[1]], data[:,0], 1),Time[frame[0]:frame[1]]),np.polyval(np.polyfit(Time[frame[0]:frame[1]], data[:,1], 1),Time[frame[0]:frame[1]]),np.polyval(np.polyfit(Time[frame[0]:frame[1]], data[:,2], 1),Time[frame[0]:frame[1]])]
+def data_correction(Time, data, plot = False):
+    center = [np.polyval(np.polyfit(Time, data[:,0], 1),Time),np.polyval(np.polyfit(Time, data[:,1], 1),Time),np.polyval(np.polyfit(Time, data[:,2], 1),Time)]
     center = np.array(center).T
     data = data- center
-    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    ax.set_title('Corection')
-    # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],0], label='x')
-    ax.plot(Time[frame[0]:frame[1]], center[:,1], label='y')
-    ax.plot(Time[frame[0]:frame[1]], data[:,1], label='y')
-    # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
-    ax.legend()
-    return np.array(data)
+    if plot:
+        fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+        ax.set_title('Corection')
+        # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],0], label='x')
+        ax.plot(Time, center[:,1], label='y')
+        ax.plot(Time, data[:,1], label='y')
+        # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
+        ax.legend()
+    return np.array(data), center
 
 def update_plot(num, data, lines):
     lines.set_data(data[frame[0]:num, 0], data[frame[0]:num, 1])
@@ -150,14 +129,14 @@ mr_foot = 1.175/100
 start_frame = 0
 end_frame = 425
 # frame = [start_frame, end_frame]
-frame = [[0,450],
-         [0,450],
-         [0,450],
-         [0,450],
-         [0,450]]
+frame = [[0,800],
+         [0,600],
+         [0,600],
+         [0,600],
+         [0,600]]
 #%%
-for n in range(1,2):
-    datapath = './data/subject001_without_hand0'+str(n)+'.xlsx'
+for n in range(0,5):
+    datapath = './data/subject001_without_hand0'+str(n+1)+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns
@@ -168,12 +147,14 @@ for n in range(1,2):
             for j in range(len(data)):
                 if i == 0:
                     exec(column_name[i]+'.append(data[j][i])')
+                    frame[n][1] = len(Time)
+                    Time = Time[frame[n][0]:frame[n][1]]
                 else:
                     temp_data.append(coordinate_transformation(data[j][i:i+3]))
+            temp_data = temp_data[frame[n][0]:frame[n][1]]
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
-                    
-    Time = Time[frame[i][0]:frame[i][1]]   
+       
     head_com = plot_com(Time, HR, HL, frame, 'Head')
     # head_com_fit = plot_com_fit(Time, HR, HL, frame, 'Head')
     tb_com = plot_com(Time, TBF, TBB, frame, 'Trunk')
@@ -197,9 +178,15 @@ for n in range(1,2):
         + rs_com[:,i]*mr_shank + ls_com[:,i]*mr_shank + rfo_com[:,i]*mr_foot + lfo_com[:,i]*mr_foot    
         body_com.append(np.array(com_position))
     body_com = np.array(body_com).T
-    body_com = plot_com(Time, body_com, body_com, frame, 'COM'+str(n), True)
-    body_com_fit = plot_com_fit(Time, body_com, body_com, frame, 'COM'+str(n), True)
-
+    body_com = plot_com(Time, body_com, body_com, frame[n], 'COM'+str(n+1))
+    # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame[n], 'COM'+str(n+1))
+    body_com_correction, center = data_correction(Time, body_com)
+    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    ax.set_title('COM'+str(n+1))
+    ax.plot(Time, body_com[:,1], label='y_original')
+    ax.plot(Time, body_com_correction[:,1], label='y_correction')
+    ax.plot(Time, center[:,1], label='centerline')
+    ax.legend()
 
 # fig = plt.figure()
 # ax = plt.figure().add_subplot(projection='3d')

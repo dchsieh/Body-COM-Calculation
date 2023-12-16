@@ -90,6 +90,21 @@ def data_correction(Time, data, plot = False):
         ax.legend()
     return np.array(data), center
 
+def find_peak_value(data):
+    y_peak = list()
+    for i in range(len(data)):
+        max_value = max(data[i])
+        min_value = min(data[i])
+        y_peak.append((max_value-min_value)/2)
+    return y_peak
+
+def plot_multiple(Time,data):
+    n = len(Time)
+
+    
+
+
+
 def update_plot(num, data, lines):
     lines.set_data(data[frame[0]:num, 0], data[frame[0]:num, 1])
     lines.set_3d_properties(data[frame[0]:num, 2])
@@ -129,12 +144,21 @@ mr_foot = 1.175/100
 start_frame = 0
 end_frame = 425
 # frame = [start_frame, end_frame]
-frame = [[0,800],
+frame_without_hand = [[0,800],
          [0,600],
          [0,600],
          [0,600],
          [0,600]]
-#%%
+frame_with_hand = [[0,800],
+         [0,600],
+         [0,600],
+         [0,600],
+         [0,600]]
+#%%Without hand
+y_com_without_hand = list()
+z_com_without_hand = list()
+Time_without_hand = list()
+Size_without_hand = list()
 for n in range(0,5):
     datapath = './data/subject001_without_hand0'+str(n+1)+'.xlsx'
     df = pd.read_excel(datapath)
@@ -147,28 +171,26 @@ for n in range(0,5):
             for j in range(len(data)):
                 if i == 0:
                     exec(column_name[i]+'.append(data[j][i])')
-                    frame[n][1] = len(Time)
-                    Time = Time[frame[n][0]:frame[n][1]]
+                    frame_without_hand[n][1] = len(Time)
+                    Time = Time[frame_without_hand[n][0]:frame_without_hand[n][1]]
                 else:
                     temp_data.append(coordinate_transformation(data[j][i:i+3]))
-            temp_data = temp_data[frame[n][0]:frame[n][1]]
+            temp_data = temp_data[frame_without_hand[n][0]:frame_without_hand[n][1]]
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
        
-    head_com = plot_com(Time, HR, HL, frame, 'Head')
-    # head_com_fit = plot_com_fit(Time, HR, HL, frame, 'Head')
-    tb_com = plot_com(Time, TBF, TBB, frame, 'Trunk')
-    rua_com = plot_com(Time, RUAB, RUAF, frame, 'Right Upper Arm')
-    lua_com = plot_com(Time, LUAB, LUAF, frame, 'Left Upper Arm')
-    rfa_com = plot_com(Time, RFAB, RFAF, frame, 'Right Fore Arm')
-    lfa_com = plot_com(Time, LFAB, LFAF, frame, 'Right Fore Arm')
-    rt_com = plot_com(Time, RTB, RTF, frame, 'Right thigh')
-    lt_com = plot_com(Time, LTB, LTF, frame, 'Left thigh')
-    rs_com = plot_com(Time, RSB, RSF, frame, 'Right shank')
-    ls_com = plot_com(Time, LSB, LSF, frame, 'Left shank')
-    rfo_com = plot_com(Time, RFI, RFO, frame, 'Right foot')
-    lfo_com = plot_com(Time, LFI, LFO, frame, 'Left foot')
-    # lfo_com_fit = plot_com_fit(Time, LFI, LFO, frame, 'Left foot')
+    head_com = plot_com(Time, HR, HL, frame_without_hand, 'Head')
+    tb_com = plot_com(Time, TBF, TBB, frame_without_hand, 'Trunk')
+    rua_com = plot_com(Time, RUAB, RUAF, frame_without_hand, 'Right Upper Arm')
+    lua_com = plot_com(Time, LUAB, LUAF, frame_without_hand, 'Left Upper Arm')
+    rfa_com = plot_com(Time, RFAB, RFAF, frame_without_hand, 'Right Fore Arm')
+    lfa_com = plot_com(Time, LFAB, LFAF, frame_without_hand, 'Right Fore Arm')
+    rt_com = plot_com(Time, RTB, RTF, frame_without_hand, 'Right thigh')
+    lt_com = plot_com(Time, LTB, LTF, frame_without_hand, 'Left thigh')
+    rs_com = plot_com(Time, RSB, RSF, frame_without_hand, 'Right shank')
+    ls_com = plot_com(Time, LSB, LSF, frame_without_hand, 'Left shank')
+    rfo_com = plot_com(Time, RFI, RFO, frame_without_hand, 'Right foot')
+    lfo_com = plot_com(Time, LFI, LFO, frame_without_hand, 'Left foot')
 
     body_com = list()
     
@@ -178,15 +200,147 @@ for n in range(0,5):
         + rs_com[:,i]*mr_shank + ls_com[:,i]*mr_shank + rfo_com[:,i]*mr_foot + lfo_com[:,i]*mr_foot    
         body_com.append(np.array(com_position))
     body_com = np.array(body_com).T
-    body_com = plot_com(Time, body_com, body_com, frame[n], 'COM'+str(n+1))
-    # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame[n], 'COM'+str(n+1))
+    body_com = plot_com(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
+    # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
-    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    ax.set_title('COM'+str(n+1))
-    ax.plot(Time, body_com[:,1], label='y_original')
-    ax.plot(Time, body_com_correction[:,1], label='y_correction')
-    ax.plot(Time, center[:,1], label='centerline')
-    ax.legend()
+    
+    fig, axs = plt.subplots(3, 1, layout='constrained')
+    axs[0].plot(Time, body_com[:,0], label='x')
+    axs[0].set_title('X')
+    axs[1].plot(Time, body_com_correction[:,1], label='y')
+    axs[1].set_title('Y')
+    axs[1].set_ylabel('Position(mm)')
+    axs[1].set_ylim(-50, 50)
+    axs[2].plot(Time, body_com[:,2], label='z')
+    axs[2].set_title('Z')
+    axs[2].set_xlabel('Time(s)')
+    fig.suptitle('COM_without_hand'+str(n+1))
+
+    
+    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    # ax.set_title('COM'+str(n+1))
+    # ax.plot(Time, body_com[:,1], label='y_original')
+    # ax.plot(Time, body_com_correction[:,1], label='y_correction')
+    # ax.plot(Time, center[:,1], label='centerline')
+    # ax.legend()
+    
+    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    # ax.set_title('COM'+str(n+1))
+    # ax.plot(Time, body_com[:,2], label='z_original')
+    # ax.legend()
+    y_com_without_hand.append(body_com_correction[:,1])
+    z_com_without_hand.append(body_com[:,2])
+    Time_without_hand.append(Time)
+    Size_without_hand.append(len(Time))
+#%% With hand
+y_com_with_hand = list()
+Time_with_hand = list()
+Size_with_hand = list()
+for n in range(0,1):
+    datapath = './data/subject001_with_hand0'+str(n+1)+'.xlsx'
+    df = pd.read_excel(datapath)
+    data = df.values.tolist()
+    column_name = df.columns
+    for i in range(len(column_name)):
+        temp_data = list()
+        if i == 0 or i%3==1:
+            exec(column_name[i]+'=[]')
+            for j in range(len(data)):
+                if i == 0:
+                    exec(column_name[i]+'.append(data[j][i])')
+                    frame_with_hand[n][1] = len(Time)
+                    Time = Time[frame_with_hand[n][0]:frame_with_hand[n][1]]
+                else:
+                    temp_data.append(coordinate_transformation(data[j][i:i+3]))
+            temp_data = temp_data[frame_with_hand[n][0]:frame_with_hand[n][1]]
+            if i != 0:
+                exec(column_name[i]+'=np.array(temp_data)')
+       
+    head_com = plot_com(Time, HR, HL, frame_with_hand, 'Head')
+    # head_com_fit = plot_com_fit(Time, HR, HL, frame_with_hand, 'Head')
+    tb_com = plot_com(Time, TBF, TBB, frame_with_hand, 'Trunk')
+    rua_com = plot_com(Time, RUAB, RUAF, frame_with_hand, 'Right Upper Arm')
+    lua_com = plot_com(Time, LUAB, LUAF, frame_with_hand, 'Left Upper Arm')
+    rfa_com = plot_com(Time, RFAB, RFAF, frame_with_hand, 'Right Fore Arm')
+    lfa_com = plot_com(Time, LFAB, LFAF, frame_with_hand, 'Right Fore Arm')
+    rt_com = plot_com(Time, RTB, RTF, frame_with_hand, 'Right thigh')
+    lt_com = plot_com(Time, LTB, LTF, frame_with_hand, 'Left thigh')
+    rs_com = plot_com(Time, RSB, RSF, frame_with_hand, 'Right shank')
+    ls_com = plot_com(Time, LSB, LSF, frame_with_hand, 'Left shank')
+    rfo_com = plot_com(Time, RFI, RFO, frame_with_hand, 'Right foot')
+    lfo_com = plot_com(Time, LFI, LFO, frame_with_hand, 'Left foot')
+    # lfo_com_fit = plot_com_fit(Time, LFI, LFO, frame_with_hand, 'Left foot')
+
+    body_com = list()
+    
+    for i in range(3): 
+        com_position = head_com[:,i]*mr_head + tb_com[:,i]*mr_trunk + rua_com[:,i]*mr_upper_arm + lua_com[:,i]*mr_upper_arm 
+        + rfa_com[:,i]*mr_lower_arm + lfa_com[:,i]*mr_lower_arm + rt_com[:,i]*mr_thigh + lt_com[:,i]*mr_thigh 
+        + rs_com[:,i]*mr_shank + ls_com[:,i]*mr_shank + rfo_com[:,i]*mr_foot + lfo_com[:,i]*mr_foot    
+        body_com.append(np.array(com_position))
+    body_com = np.array(body_com).T
+    body_com = plot_com(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
+    # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
+    body_com_correction, center = data_correction(Time, body_com)
+    fig, axs = plt.subplots(3, 1, layout='constrained')
+    axs[0].plot(Time, body_com[:,0], label='x')
+    axs[0].set_title('X')
+    axs[1].plot(Time, body_com_correction[:,1], label='y')
+    axs[1].set_title('Y')
+    axs[1].set_ylabel('Position(mm)')
+    axs[1].set_ylim(-50, 50)
+    axs[2].plot(Time, body_com[:,2], label='z')
+    axs[2].set_title('Z')
+    axs[2].set_xlabel('Time(s)')
+    fig.suptitle('COM_with_hand'+str(n+1))
+    
+    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    # ax.set_title('COM'+str(n+1))
+    # ax.plot(Time, body_com[:,1], label='y_original')
+    # ax.plot(Time, body_com_correction[:,1], label='y_correction')
+    # ax.plot(Time, center[:,1], label='centerline')
+    # ax.legend()
+    
+    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    # ax.set_title('COM'+str(n+1))
+    # ax.plot(Time, body_com[:,2], label='z_original')
+    # ax.legend()
+    y_com_with_hand.append(body_com_correction[:,1])
+    Time_with_hand.append(Time)
+    Size_with_hand.append(len(Time))
+
+#%% Comparison
+# y_com_without_hand = list()
+# Time_without_hand = list()
+# Size_without_hand = list()
+
+y_peak_without_hand = find_peak_value(y_com_without_hand)
+y_peak_with_hand = find_peak_value(y_com_with_hand)
+fig, axs = plt.subplots(2, 1, layout='constrained')
+for i in range(len(y_com_without_hand)):
+    axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_without_hand[i],1)))
+for i in range(len(y_com_with_hand)):
+    axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_with_hand[i],1)))
+axs[0].set_title('Without hand, Peak avg.'+str(round(np.average(y_peak_without_hand),1)))
+axs[1].set_title('With hand, Peak avg.'+str(round(np.average(y_peak_with_hand),1)))
+axs[0].set_ylim(-50, 50)
+axs[1].set_ylim(-50, 50)
+axs[0].set_xlim(0, max(Size_without_hand))
+axs[1].set_xlim(0, max(Size_with_hand))
+axs[0].set_ylabel('Position(mm)')
+axs[1].set_ylabel('Position(mm)')
+axs[0].legend()
+axs[1].legend()
+axs[0].grid()
+axs[1].grid()
+axs[1].set_xlabel('Time(s)')
+fig.suptitle('Y_COM_Comparison')
+
+fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+ax.set_title('Y-Z')
+for i in range(len(Time_without_hand)):
+    ax.plot(y_com_without_hand[i], z_com_without_hand[i], label=i+1)
+ax.legend()
 
 # fig = plt.figure()
 # ax = plt.figure().add_subplot(projection='3d')

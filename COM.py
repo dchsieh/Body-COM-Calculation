@@ -98,10 +98,37 @@ def find_peak_value(data):
         y_peak.append((max_value-min_value)/2)
     return y_peak
 
-def plot_multiple(Time,data):
-    n = len(Time)
+def plot_multiple(y_com_without_hand,y_com_with_hand, subject):
+    fig, axs = plt.subplots(2, 1, layout='constrained')
+    for i in range(len(y_com_without_hand)):
+        axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_without_hand[i],1)))
+    for i in range(len(y_com_with_hand)):
+        axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_with_hand[i],1)))
+    for i in range(2):
+        axs[i].set_ylim(-50, 50)
+        axs[i].set_ylabel('Position(mm)')
+        axs[i].legend()
+        axs[i].grid()
+    axs[0].set_title('Without hand, Peak avg.'+str(round(np.average(y_peak_without_hand),1)))
+    axs[1].set_title('With hand, Peak avg.'+str(round(np.average(y_peak_with_hand),1)))
+    axs[0].set_xlim(0, max(Size_without_hand))
+    axs[1].set_xlim(0, max(Size_with_hand))
+    axs[1].set_xlabel('Time(s)')
+    fig.suptitle('Subject:'+str(subject)+', Y_COM_Comparison')
+    return
 
-    
+def plot_xyz(Time, body_com, title):
+    fig, axs = plt.subplots(3, 1, layout='constrained')
+    axs[0].plot(Time, body_com[:][0], label='x')
+    axs[0].set_title('X')
+    axs[1].plot(Time, body_com[:][1], label='y')
+    axs[1].set_title('Y')
+    axs[1].set_ylabel('Position(mm)')
+    axs[1].set_ylim(-50, 50)
+    axs[2].plot(Time, body_com[:][2], label='z')
+    axs[2].set_title('Z')
+    axs[2].set_xlabel('Time(s)')
+    fig.suptitle(title)
 
 
 
@@ -144,11 +171,15 @@ mr_foot = 1.175/100
 start_frame = 0
 end_frame = 425
 # frame = [start_frame, end_frame]
+subject_without_hand = 1
+number_without_hand = [0,5]
 frame_without_hand = [[0,800],
          [0,600],
          [0,600],
          [0,600],
          [0,600]]
+subject_with_hand = 1
+number_with_hand = [0,1]
 frame_with_hand = [[0,800],
          [0,600],
          [0,600],
@@ -159,8 +190,8 @@ y_com_without_hand = list()
 z_com_without_hand = list()
 Time_without_hand = list()
 Size_without_hand = list()
-for n in range(0,5):
-    datapath = './data/subject001_without_hand0'+str(n+1)+'.xlsx'
+for n in range(number_without_hand[0],number_without_hand[1]):
+    datapath = './data/subject00'+str(subject_with_hand)+'_without_hand0'+str(n+1)+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns
@@ -203,18 +234,8 @@ for n in range(0,5):
     body_com = plot_com(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
     # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
-    
-    fig, axs = plt.subplots(3, 1, layout='constrained')
-    axs[0].plot(Time, body_com[:,0], label='x')
-    axs[0].set_title('X')
-    axs[1].plot(Time, body_com_correction[:,1], label='y')
-    axs[1].set_title('Y')
-    axs[1].set_ylabel('Position(mm)')
-    axs[1].set_ylim(-50, 50)
-    axs[2].plot(Time, body_com[:,2], label='z')
-    axs[2].set_title('Z')
-    axs[2].set_xlabel('Time(s)')
-    fig.suptitle('COM_without_hand'+str(n+1))
+    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_without_hand'+str(n+1))
+
 
     
     # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
@@ -223,21 +244,17 @@ for n in range(0,5):
     # ax.plot(Time, body_com_correction[:,1], label='y_correction')
     # ax.plot(Time, center[:,1], label='centerline')
     # ax.legend()
-    
-    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    # ax.set_title('COM'+str(n+1))
-    # ax.plot(Time, body_com[:,2], label='z_original')
-    # ax.legend()
     y_com_without_hand.append(body_com_correction[:,1])
     z_com_without_hand.append(body_com[:,2])
     Time_without_hand.append(Time)
     Size_without_hand.append(len(Time))
 #%% With hand
 y_com_with_hand = list()
+z_com_with_hand = list()
 Time_with_hand = list()
 Size_with_hand = list()
-for n in range(0,1):
-    datapath = './data/subject001_with_hand0'+str(n+1)+'.xlsx'
+for n in range(number_with_hand[0],number_with_hand[1]):
+    datapath = './data/subject00'+str(subject_with_hand)+'_with_hand0'+str(n+1)+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns
@@ -282,17 +299,8 @@ for n in range(0,1):
     body_com = plot_com(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
     # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
-    fig, axs = plt.subplots(3, 1, layout='constrained')
-    axs[0].plot(Time, body_com[:,0], label='x')
-    axs[0].set_title('X')
-    axs[1].plot(Time, body_com_correction[:,1], label='y')
-    axs[1].set_title('Y')
-    axs[1].set_ylabel('Position(mm)')
-    axs[1].set_ylim(-50, 50)
-    axs[2].plot(Time, body_com[:,2], label='z')
-    axs[2].set_title('Z')
-    axs[2].set_xlabel('Time(s)')
-    fig.suptitle('COM_with_hand'+str(n+1))
+    
+    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_with_hand'+str(n+1))
     
     # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
     # ax.set_title('COM'+str(n+1))
@@ -301,45 +309,21 @@ for n in range(0,1):
     # ax.plot(Time, center[:,1], label='centerline')
     # ax.legend()
     
-    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    # ax.set_title('COM'+str(n+1))
-    # ax.plot(Time, body_com[:,2], label='z_original')
-    # ax.legend()
     y_com_with_hand.append(body_com_correction[:,1])
+    z_com_with_hand.append(body_com[:,2])
     Time_with_hand.append(Time)
     Size_with_hand.append(len(Time))
 
 #%% Comparison
-# y_com_without_hand = list()
-# Time_without_hand = list()
-# Size_without_hand = list()
-
 y_peak_without_hand = find_peak_value(y_com_without_hand)
 y_peak_with_hand = find_peak_value(y_com_with_hand)
-fig, axs = plt.subplots(2, 1, layout='constrained')
-for i in range(len(y_com_without_hand)):
-    axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_without_hand[i],1)))
-for i in range(len(y_com_with_hand)):
-    axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_with_hand[i],1)))
-axs[0].set_title('Without hand, Peak avg.'+str(round(np.average(y_peak_without_hand),1)))
-axs[1].set_title('With hand, Peak avg.'+str(round(np.average(y_peak_with_hand),1)))
-axs[0].set_ylim(-50, 50)
-axs[1].set_ylim(-50, 50)
-axs[0].set_xlim(0, max(Size_without_hand))
-axs[1].set_xlim(0, max(Size_with_hand))
-axs[0].set_ylabel('Position(mm)')
-axs[1].set_ylabel('Position(mm)')
-axs[0].legend()
-axs[1].legend()
-axs[0].grid()
-axs[1].grid()
-axs[1].set_xlabel('Time(s)')
-fig.suptitle('Y_COM_Comparison')
+plot_multiple(y_com_without_hand, y_com_with_hand, 1)
 
 fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
 ax.set_title('Y-Z')
 for i in range(len(Time_without_hand)):
     ax.plot(y_com_without_hand[i], z_com_without_hand[i], label=i+1)
+ax.plot(np.array(y_com_with_hand).T, np.array(z_com_with_hand).T, dashes=[6, 2], label = 'withhand')
 ax.legend()
 
 # fig = plt.figure()

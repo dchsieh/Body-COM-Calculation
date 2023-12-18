@@ -101,9 +101,9 @@ def find_peak_value(data):
 def plot_multiple(y_com_without_hand,y_com_with_hand):
     fig, axs = plt.subplots(2, 1, layout='constrained')
     for i in range(len(y_com_without_hand)):
-        axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_without_hand[i],1)))
+        axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(number_without_hand[i])+', peak: '+str(round(y_peak_without_hand[i],1)))
     for i in range(len(y_com_with_hand)):
-        axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(i+1)+', peak: '+str(round(y_peak_with_hand[i],1)))
+        axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(number_with_hand[i])+', peak: '+str(round(y_peak_with_hand[i],1)))
     for i in range(2):
         axs[i].set_ylim(-50, 50)
         axs[i].set_ylabel('Position(mm)')
@@ -171,27 +171,46 @@ mr_foot = 1.175/100
 start_frame = 1
 end_frame = 425
 # frame = [start_frame, end_frame]
-subject_without_hand = 2
-number_without_hand = [0,5]
-frame_without_hand = [[0,600],
-         [0,600],
-         [0,600],
-         [0,600],
-         [0,600]]
-subject_with_hand = 2
-number_with_hand = [2,3]
-frame_with_hand = [[0,600],
-         [0,600],
-         [0,600],
-         [0,600],
-         [0,600]]
+#%%Subject 1
+
+subject_without_hand = 1
+number_without_hand = [1,2,3,4,5]
+frame_without_hand = {1:[0,600],
+                      2:[0,600],
+                      3: [0,600],
+                      4:[0,600],
+                      5:[0,600]}
+subject_with_hand = 1
+number_with_hand = [1]
+frame_with_hand = {1:[0,600],
+                    2:[0,600],
+                    3:[0,600],
+                    4:[0,600],
+                    5:[0,600]}
+#%%Subject 2
+
+# subject_without_hand = 2
+# number_without_hand = [2,3,4,6,7]
+# frame_without_hand = {2:[0,600],
+#                       3:[50,600],
+#                       4:[0,600],
+#                       6:[0,600],
+#                       7:[0,600]}
+# subject_with_hand = 2
+# number_with_hand = [3,4]
+# frame_with_hand = {1:[0,600],
+#                    2:[0,600],
+#                    3:[0,600],
+#                    4:[0,600],
+#                    5:[0,600]}
+
 #%%Without hand
 y_com_without_hand = list()
 z_com_without_hand = list()
 Time_without_hand = list()
 Size_without_hand = list()
-for n in range(number_without_hand[0],number_without_hand[1]):
-    datapath = './data/subject00'+str(subject_without_hand)+'_without_hand0'+str(n+1)+'.xlsx'
+for n in range(len(number_without_hand)):
+    datapath = './data/subject00'+str(subject_without_hand)+'_without_hand0'+str(number_without_hand[n])+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns
@@ -204,11 +223,12 @@ for n in range(number_without_hand[0],number_without_hand[1]):
                     exec(column_name[i]+'.append(data[j][i])')
                 else:
                     temp_data.append(coordinate_transformation(data[j][i:i+3]))
-            frame_without_hand[n][1] = len(Time)     
-            temp_data = temp_data[frame_without_hand[n][0]:frame_without_hand[n][1]]
+            if frame_without_hand[number_without_hand[n]][1] > len(Time):  
+                frame_without_hand[number_without_hand[n]][1] = len(Time)     
+            temp_data = temp_data[frame_without_hand[number_without_hand[n]][0]:frame_without_hand[number_without_hand[n]][1]]
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
-    Time = Time[frame_without_hand[n][0]:frame_without_hand[n][1]]
+    Time = Time[frame_without_hand[number_without_hand[n]][0]:frame_without_hand[number_without_hand[n]][1]]
     Time = np.array(Time)-Time[0]
     head_com = plot_com(Time, HR, HL, frame_without_hand, 'Head')
     tb_com = plot_com(Time, TBF, TBB, frame_without_hand, 'Trunk')
@@ -231,10 +251,10 @@ for n in range(number_without_hand[0],number_without_hand[1]):
         + rs_com[:,i]*mr_shank + ls_com[:,i]*mr_shank + rfo_com[:,i]*mr_foot + lfo_com[:,i]*mr_foot    
         body_com.append(np.array(com_position))
     body_com = np.array(body_com).T
-    body_com = plot_com(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
+    body_com = plot_com(Time, body_com, body_com, frame_without_hand[number_without_hand[n]], 'COM'+str(number_without_hand[n]))
     # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
-    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_without_hand'+str(n+1))
+    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_without_hand'+str(number_without_hand[n]))
 
 
     
@@ -253,8 +273,8 @@ y_com_with_hand = list()
 z_com_with_hand = list()
 Time_with_hand = list()
 Size_with_hand = list()
-for n in range(number_with_hand[0],number_with_hand[1]):
-    datapath = './data/subject00'+str(subject_with_hand)+'_with_hand0'+str(n+1)+'.xlsx'
+for n in range(len(number_with_hand)):
+    datapath = './data/subject00'+str(subject_with_hand)+'_with_hand0'+str(number_with_hand[n])+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns
@@ -267,11 +287,12 @@ for n in range(number_with_hand[0],number_with_hand[1]):
                     exec(column_name[i]+'.append(data[j][i])')
                 else:
                     temp_data.append(coordinate_transformation(data[j][i:i+3]))
-            frame_without_hand[n][1] = len(Time)     
-            temp_data = temp_data[frame_with_hand[n][0]:frame_with_hand[n][1]]
+            if frame_without_hand[number_with_hand[n]][1] > len(Time):    
+                frame_without_hand[number_with_hand[n]][1] = len(Time)     
+            temp_data = temp_data[frame_with_hand[number_with_hand[n]][0]:frame_with_hand[number_with_hand[n]][1]]
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
-    Time = Time[frame_with_hand[n][0]:frame_with_hand[n][1]]  
+    Time = Time[frame_with_hand[number_with_hand[n]][0]:frame_with_hand[number_with_hand[n]][1]]  
     Time = np.array(Time)-Time[0]
     head_com = plot_com(Time, HR, HL, frame_with_hand, 'Head')
     # head_com_fit = plot_com_fit(Time, HR, HL, frame_with_hand, 'Head')
@@ -296,11 +317,11 @@ for n in range(number_with_hand[0],number_with_hand[1]):
         + rs_com[:,i]*mr_shank + ls_com[:,i]*mr_shank + rfo_com[:,i]*mr_foot + lfo_com[:,i]*mr_foot    
         body_com.append(np.array(com_position))
     body_com = np.array(body_com).T
-    body_com = plot_com(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
+    body_com = plot_com(Time, body_com, body_com, frame_with_hand[number_with_hand[n]], 'COM'+str(number_with_hand[n]))
     # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
     
-    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_with_hand'+str(n+1))
+    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_with_hand'+str(number_with_hand[n]))
     
     # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
     # ax.set_title('COM'+str(n+1))
@@ -323,7 +344,8 @@ fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
 ax.set_title('Y-Z')
 for i in range(len(Time_without_hand)):
     ax.plot(y_com_without_hand[i], z_com_without_hand[i], label=i+1)
-ax.plot(np.array(y_com_with_hand).T, np.array(z_com_with_hand).T, dashes=[6, 2], label = 'withhand')
+for i in range(len(Time_with_hand)):
+    ax.plot(np.array(y_com_with_hand[i]).T, np.array(z_com_with_hand[i]).T, dashes=[6, 2], label = 'withhand')
 ax.legend()
 
 # fig = plt.figure()

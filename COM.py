@@ -105,7 +105,7 @@ def plot_multiple(y_com_without_hand,y_com_with_hand):
     for i in range(len(y_com_with_hand)):
         axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(number_with_hand[i])+', peak: '+str(round(y_peak_with_hand[i],1)))
     for i in range(2):
-        axs[i].set_ylim(-50, 50)
+        axs[i].set_ylim(-75, 75)
         axs[i].set_ylabel('Position(mm)')
         axs[i].legend()
         axs[i].grid()
@@ -121,16 +121,17 @@ def plot_xyz(Time, body_com, title):
     fig, axs = plt.subplots(3, 1, layout='constrained')
     axs[0].plot(Time, body_com[:][0], label='x')
     axs[0].set_title('X')
+    axs[0].grid()
     axs[1].plot(Time, body_com[:][1], label='y')
     axs[1].set_title('Y')
     axs[1].set_ylabel('Position(mm)')
-    axs[1].set_ylim(-50, 50)
+    axs[1].set_ylim(-max(abs(body_com[:][1]))-10, max(abs(body_com[:][1]))+10)
+    axs[1].grid()
     axs[2].plot(Time, body_com[:][2], label='z')
     axs[2].set_title('Z')
     axs[2].set_xlabel('Time(s)')
+    axs[2].grid()
     fig.suptitle(title)
-
-
 
 def update_plot(num, data, lines):
     lines.set_data(data[frame[0]:num, 0], data[frame[0]:num, 1])
@@ -173,36 +174,36 @@ end_frame = 425
 # frame = [start_frame, end_frame]
 #%%Subject 1
 
-subject_without_hand = 1
-number_without_hand = [1,2,3,4,5]
-frame_without_hand = {1:[0,600],
-                      2:[0,600],
-                      3: [0,600],
+# subject_without_hand = 1
+# number_without_hand = [1,2,3,4,5]
+# frame_without_hand = {1:[0,600],
+#                       2:[0,600],
+#                       3: [0,600],
+#                       4:[0,600],
+#                       5:[0,600]}
+# subject_with_hand = 1
+# number_with_hand = [1]
+# frame_with_hand = {1:[0,600],
+#                     2:[0,600],
+#                     3:[0,600],
+#                     4:[0,600],
+#                     5:[0,600]}
+#%%Subject 2
+
+subject_without_hand = 2
+number_without_hand = [2,3,4,6,7]
+frame_without_hand = {2:[0,600],
+                      3:[50,600],
                       4:[0,600],
-                      5:[0,600]}
-subject_with_hand = 1
-number_with_hand = [1]
-frame_with_hand = {1:[0,600],
+                      6:[0,600],
+                      7:[0,600]}
+subject_with_hand = 2
+number_with_hand = [3,4,5,7]
+frame_with_hand = {7:[0,600],
                     2:[0,600],
                     3:[0,600],
                     4:[0,600],
                     5:[0,600]}
-#%%Subject 2
-
-# subject_without_hand = 2
-# number_without_hand = [2,3,4,6,7]
-# frame_without_hand = {2:[0,600],
-#                       3:[50,600],
-#                       4:[0,600],
-#                       6:[0,600],
-#                       7:[0,600]}
-# subject_with_hand = 2
-# number_with_hand = [3,4]
-# frame_with_hand = {1:[0,600],
-#                    2:[0,600],
-#                    3:[0,600],
-#                    4:[0,600],
-#                    5:[0,600]}
 
 #%%Without hand
 y_com_without_hand = list()
@@ -254,7 +255,7 @@ for n in range(len(number_without_hand)):
     body_com = plot_com(Time, body_com, body_com, frame_without_hand[number_without_hand[n]], 'COM'+str(number_without_hand[n]))
     # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_without_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
-    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_without_hand'+str(number_without_hand[n]))
+    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'Subject: '+str(subject_without_hand)+', COM_without_hand'+str(number_without_hand[n]))
 
 
     
@@ -287,8 +288,8 @@ for n in range(len(number_with_hand)):
                     exec(column_name[i]+'.append(data[j][i])')
                 else:
                     temp_data.append(coordinate_transformation(data[j][i:i+3]))
-            if frame_without_hand[number_with_hand[n]][1] > len(Time):    
-                frame_without_hand[number_with_hand[n]][1] = len(Time)     
+            if frame_with_hand[number_with_hand[n]][1] > len(Time):    
+                frame_with_hand[number_with_hand[n]][1] = len(Time)     
             temp_data = temp_data[frame_with_hand[number_with_hand[n]][0]:frame_with_hand[number_with_hand[n]][1]]
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
@@ -321,7 +322,7 @@ for n in range(len(number_with_hand)):
     # body_com_fit, center = plot_com_fit(Time, body_com, body_com, frame_with_hand[n], 'COM'+str(n+1))
     body_com_correction, center = data_correction(Time, body_com)
     
-    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'COM_with_hand'+str(number_with_hand[n]))
+    plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'Subject: '+str(subject_with_hand)+', COM_with_hand'+str(number_with_hand[n]))
     
     # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
     # ax.set_title('COM'+str(n+1))
@@ -343,9 +344,9 @@ plot_multiple(y_com_without_hand, y_com_with_hand)
 fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
 ax.set_title('Y-Z')
 for i in range(len(Time_without_hand)):
-    ax.plot(y_com_without_hand[i], z_com_without_hand[i], label=i+1)
+    ax.plot(y_com_without_hand[i], z_com_without_hand[i], label='Without'+str(number_without_hand[i]))
 for i in range(len(Time_with_hand)):
-    ax.plot(np.array(y_com_with_hand[i]).T, np.array(z_com_with_hand[i]).T, dashes=[6, 2], label = 'withhand')
+    ax.plot(np.array(y_com_with_hand[i]).T, np.array(z_com_with_hand[i]).T, dashes=[6, 2], label = 'With'+str(number_with_hand[i]))
 ax.legend()
 
 # fig = plt.figure()

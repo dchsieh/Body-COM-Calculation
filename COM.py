@@ -232,7 +232,7 @@ z_com_without_hand = list()
 Time_without_hand = list()
 Size_without_hand = list()
 for n in range(len(number_without_hand)):
-    datapath = './data/subject00'+str(subject_without_hand)+'_without_hand0'+str(number_without_hand[n])+'.xlsx'
+    datapath = './data/subject00'+str(subject_without_hand)+'/subject00'+str(subject_without_hand)+'_without_hand0'+str(number_without_hand[n])+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns
@@ -296,7 +296,7 @@ z_com_with_hand = list()
 Time_with_hand = list()
 Size_with_hand = list()
 for n in range(len(number_with_hand)):
-    datapath = './data/subject00'+str(subject_with_hand)+'_with_hand0'+str(number_with_hand[n])+'.xlsx'
+    datapath = './data/subject00'+str(subject_with_hand)+'/subject00'+str(subject_with_hand)+'_with_hand0'+str(number_with_hand[n])+'.xlsx'
     df = pd.read_excel(datapath)
     data = df.values.tolist()
     column_name = df.columns

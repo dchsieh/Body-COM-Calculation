@@ -58,8 +58,8 @@ def plot_com(Time, data1, data2, frame, name = '', plot = False):
         ax.plot(Time, com[:,1], label='y')
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
         ax.legend()
-        ax.set_xlim(frame[0],frame[1]-50)
-        ax.set_ylim(-100, 100)
+        # ax.set_xlim(frame[0],frame[1]-50)
+        # ax.set_ylim(-100, 100)
     return com
 
 def plot_com_fit(Time, data1, data2, frame, name = '', plot = False):
@@ -79,7 +79,7 @@ def plot_com_fit(Time, data1, data2, frame, name = '', plot = False):
 def data_correction(Time, data, plot = False):
     center = [np.polyval(np.polyfit(Time, data[:,0], 1),Time),np.polyval(np.polyfit(Time, data[:,1], 1),Time),np.polyval(np.polyfit(Time, data[:,2], 1),Time)]
     center = np.array(center).T
-    data = data- center
+    data = data - center
     if plot:
         fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
         ax.set_title('Corection')
@@ -89,6 +89,10 @@ def data_correction(Time, data, plot = False):
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
         ax.legend()
     return np.array(data), center
+
+def data_correction_2(data, com1, com2):
+    data = data-(com1+com2)/2
+    return np.array(data)
 
 def find_peak_value(data):
     y_peak = list()
@@ -114,7 +118,7 @@ def plot_multiple(y_com_without_hand,y_com_with_hand):
     axs[0].set_xlim(0, max(Size_without_hand))
     axs[1].set_xlim(0, max(Size_with_hand))
     axs[1].set_xlabel('Time(s)')
-    fig.suptitle('Y_COM_Comparison')
+    fig.suptitle('COM on Frontal plane')
     return
 
 def plot_xyz(Time, body_com, title):
@@ -133,15 +137,15 @@ def plot_xyz(Time, body_com, title):
     axs[2].grid()
     fig.suptitle(title)
 
-def update_plot(num, data, lines):
-    lines.set_data(data[frame[0]:num, 0], data[frame[0]:num, 1])
-    lines.set_3d_properties(data[frame[0]:num, 2])
-    return lines,
+# def update_plot(num, data, lines):
+#     lines.set_data(data[frame[0]:num, 0], data[frame[0]:num, 1])
+#     lines.set_3d_properties(data[frame[0]:num, 2])
+#     return lines,
 
-def init():
-    lines.set_data([], [])
-    lines.set_3d_properties([])
-    return lines,
+# def init():
+#     lines.set_data([], [])
+#     lines.set_3d_properties([])
+#     return lines,
 #%% Load data
 # df = pd.read_excel('./data/subject001_without_hand02.xlsx')
 # data = df.values.tolist()
@@ -174,36 +178,53 @@ end_frame = 425
 # frame = [start_frame, end_frame]
 #%%Subject 1
 
-# subject_without_hand = 1
-# number_without_hand = [1,2,3,4,5]
-# frame_without_hand = {1:[0,600],
-#                       2:[0,600],
-#                       3: [0,600],
-#                       4:[0,600],
-#                       5:[0,600]}
-# subject_with_hand = 1
-# number_with_hand = [1]
-# frame_with_hand = {1:[0,600],
-#                     2:[0,600],
-#                     3:[0,600],
-#                     4:[0,600],
-#                     5:[0,600]}
-#%%Subject 2
-
-subject_without_hand = 2
-number_without_hand = [2,3,4,6,7]
-frame_without_hand = {2:[0,600],
-                      3:[50,600],
+subject_without_hand = 1
+number_without_hand = [1,2,3,4,5]
+frame_without_hand = {1:[0,600],
+                      2:[0,600],
+                      3: [0,600],
                       4:[0,600],
-                      6:[0,600],
-                      7:[0,600]}
-subject_with_hand = 2
-number_with_hand = [3,4,5,7]
-frame_with_hand = {7:[0,600],
+                      5:[0,600]}
+subject_with_hand = 1
+number_with_hand = [1]
+frame_with_hand = {1:[0,600],
                     2:[0,600],
                     3:[0,600],
                     4:[0,600],
                     5:[0,600]}
+#%%Subject 2
+
+# subject_without_hand = 2
+# number_without_hand = [2,3,4,6,7]
+# frame_without_hand = {2:[0,600],
+#                       3:[50,600],
+#                       4:[0,600],
+#                       6:[0,600],
+#                       7:[0,600]}
+# subject_with_hand = 2
+# number_with_hand = [3,4,5,7]
+# frame_with_hand = {7:[0,600],
+#                     2:[0,600],
+#                     3:[0,600],
+#                     4:[0,600],
+#                     5:[0,600]}
+
+#%%Subject 3
+
+# subject_without_hand = 3
+# number_without_hand = [2,4]
+# frame_without_hand = {2:[0,600],
+#                       3:[50,600],
+#                       4:[0,600],
+#                       6:[0,600],
+#                       7:[0,600]}
+# subject_with_hand = 3
+# number_with_hand = [2,3,4,5,6]
+# frame_with_hand = {2:[0,600],
+#                     3:[0,600],
+#                     4:[0,600],
+#                     5:[0,600],
+#                     6:[0,600]}
 
 #%%Without hand
 y_com_without_hand = list()
@@ -230,7 +251,7 @@ for n in range(len(number_without_hand)):
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
     Time = Time[frame_without_hand[number_without_hand[n]][0]:frame_without_hand[number_without_hand[n]][1]]
-    Time = np.array(Time)-Time[0]
+    Time = (np.array(Time)-Time[0])/100
     head_com = plot_com(Time, HR, HL, frame_without_hand, 'Head')
     tb_com = plot_com(Time, TBF, TBB, frame_without_hand, 'Trunk')
     rua_com = plot_com(Time, RUAB, RUAF, frame_without_hand, 'Right Upper Arm')
@@ -294,7 +315,7 @@ for n in range(len(number_with_hand)):
             if i != 0:
                 exec(column_name[i]+'=np.array(temp_data)')
     Time = Time[frame_with_hand[number_with_hand[n]][0]:frame_with_hand[number_with_hand[n]][1]]  
-    Time = np.array(Time)-Time[0]
+    Time = (np.array(Time)-Time[0])/100
     head_com = plot_com(Time, HR, HL, frame_with_hand, 'Head')
     # head_com_fit = plot_com_fit(Time, HR, HL, frame_with_hand, 'Head')
     tb_com = plot_com(Time, TBF, TBB, frame_with_hand, 'Trunk')
@@ -324,12 +345,15 @@ for n in range(len(number_with_hand)):
     
     plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'Subject: '+str(subject_with_hand)+', COM_with_hand'+str(number_with_hand[n]))
     
-    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    # ax.set_title('COM'+str(n+1))
-    # ax.plot(Time, body_com[:,1], label='y_original')
-    # ax.plot(Time, body_com_correction[:,1], label='y_correction')
-    # ax.plot(Time, center[:,1], label='centerline')
-    # ax.legend()
+    # body_com_correction2 = data_correction_2(body_com, rfo_com, lfo_com)
+    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    ax.set_title('COM'+str(n+1))
+    ax.plot(Time, body_com[:,1], label='y_original')
+    ax.plot(Time, body_com_correction[:,1], label='y_correction')
+    ax.plot(Time, center[:,1], label='centerline')
+    # ax.plot(Time, body_com_correction2[:,1], label='y')
+    # ax.plot(Time, (rfo_com[:,1]+lfo_com[:,1])/2, label='y')
+    ax.legend()
     
     y_com_with_hand.append(body_com_correction[:,1])
     z_com_with_hand.append(body_com[:,2])

@@ -52,14 +52,15 @@ def get_segment_com_fit(time, Data1, Data2):
 def plot_com(Time, data1, data2, frame, name = '', plot = False):
     com = get_segment_com(data1, data2)
     if plot:
-        fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-        ax.set_title(name)
+        # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+        # ax.set_title(name)
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],0], label='x')
-        ax.plot(Time, com[:,1], label='y')
+        # ax.plot(Time, com[:,1], label='y')
         # ax.plot(Time[frame[0]:frame[1]], com[frame[0]:frame[1],2], label='z')
-        ax.legend()
+        # ax.legend()
         # ax.set_xlim(frame[0],frame[1]-50)
         # ax.set_ylim(-100, 100)
+        plot_xyz(Time, com.T, name)
     return com
 
 def plot_com_fit(Time, data1, data2, frame, name = '', plot = False):
@@ -104,20 +105,24 @@ def find_peak_value(data):
 
 def plot_multiple(y_com_without_hand,y_com_with_hand):
     fig, axs = plt.subplots(2, 1, layout='constrained')
+    std_without_hand = list()
+    std_with_hand = list()
     for i in range(len(y_com_without_hand)):
-        axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(number_without_hand[i])+', peak: '+str(round(y_peak_without_hand[i],1)))
+        axs[0].plot(Time_without_hand[i],y_com_without_hand[i],label=str(number_without_hand[i])+', p: '+str(round(y_peak_without_hand[i],1))+', s: '+str(round(np.std(y_com_without_hand[i]),1)))
+        std_without_hand.append(round(np.std(y_com_without_hand[i]),1))
     for i in range(len(y_com_with_hand)):
-        axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(number_with_hand[i])+', peak: '+str(round(y_peak_with_hand[i],1)))
+        axs[1].plot(Time_with_hand[i],y_com_with_hand[i],label=str(number_with_hand[i])+', p: '+str(round(y_peak_with_hand[i],1))+', s: '+str(round(np.std(y_com_with_hand[i]),1)))
+        std_with_hand.append(round(np.std(y_com_with_hand[i]),1))
     for i in range(2):
         axs[i].set_ylim(-75, 75)
         axs[i].set_ylabel('Position(mm)')
-        axs[i].legend()
+        axs[i].legend(loc='center left', bbox_to_anchor=(1, 0.5))
         axs[i].grid()
-    axs[0].set_title('Subject: '+str(subject_without_hand)+', Without hand, Peak avg.'+str(round(np.average(y_peak_without_hand),1)))
-    axs[1].set_title('Subject: '+str(subject_without_hand)+', With hand, Peak avg.'+str(round(np.average(y_peak_with_hand),1)))
+        axs[i].set_xlabel('Time(s)')
+    axs[0].set_title('Subject: '+str(subject_without_hand)+', Without hand, Peak avg.'+str(round(np.average(y_peak_without_hand),1))+', std: '+str(round(np.average(std_without_hand),1)))
+    axs[1].set_title('Subject: '+str(subject_without_hand)+', With hand, Peak avg.'+str(round(np.average(y_peak_with_hand),1))+', std: '+str(round(np.average(std_with_hand),1)))
     axs[0].set_xlim(0, max(Size_without_hand))
     axs[1].set_xlim(0, max(Size_with_hand))
-    axs[1].set_xlabel('Time(s)')
     fig.suptitle('COM on Frontal plane')
     return
 
@@ -136,6 +141,26 @@ def plot_xyz(Time, body_com, title):
     axs[2].set_xlabel('Time(s)')
     axs[2].grid()
     fig.suptitle(title)
+    
+def plot_xyz_multiple(Time, body_com, title):
+    fig, axs = plt.subplots(3, 1, layout='constrained')
+    for i in range(len(body_com)):
+        axs[0].plot(Time, body_com[i][:,0], label=title[i])
+        axs[1].plot(Time, body_com[i][:,1], label=title[i])
+        axs[2].plot(Time, body_com[i][:,2], label=title[i])
+    axs[0].set_title('X')
+    axs[0].grid()
+    axs[1].set_title('Y')
+    axs[1].set_ylabel('Position(mm)')
+    # axs[1].set_ylim(-100-10, 100+10)
+    axs[1].grid()
+    axs[2].set_title('Z')
+    axs[1].set_xlabel('Time(s)')
+    axs[2].grid()
+    axs[2].legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+          fancybox=True, ncol=5)
+    fig.suptitle('Raw data'+str(title))
+    return body_com
 
 # def update_plot(num, data, lines):
 #     lines.set_data(data[frame[0]:num, 0], data[frame[0]:num, 1])
@@ -180,18 +205,20 @@ end_frame = 425
 
 subject_without_hand = 1
 number_without_hand = [1,2,3,4,5]
+# number_without_hand = [1]
 frame_without_hand = {1:[0,600],
                       2:[0,600],
                       3: [0,600],
                       4:[0,600],
                       5:[0,600]}
 subject_with_hand = 1
-number_with_hand = [1]
+number_with_hand = [1,2,5,6,7]
+# number_with_hand = [1]
 frame_with_hand = {1:[0,600],
                     2:[0,600],
-                    3:[0,600],
-                    4:[0,600],
-                    5:[0,600]}
+                    5:[0,600],
+                    6:[0,600],
+                    7:[0,600]}
 #%%Subject 2
 
 # subject_without_hand = 2
@@ -202,22 +229,22 @@ frame_with_hand = {1:[0,600],
 #                       6:[0,600],
 #                       7:[0,600]}
 # subject_with_hand = 2
-# number_with_hand = [3,4,5,7]
-# frame_with_hand = {7:[0,600],
-#                     2:[0,600],
-#                     3:[0,600],
+# number_with_hand = [3,4,5,7,8]
+# frame_with_hand = {3:[0,600],
 #                     4:[0,600],
-#                     5:[0,600]}
+#                     5:[0,600],
+#                     7:[0,600],
+#                     8:[0,600]}
 
 #%%Subject 3
 
 # subject_without_hand = 3
-# number_without_hand = [2,4]
+# number_without_hand = [2,4,6,7,8]
 # frame_without_hand = {2:[0,600],
-#                       3:[50,600],
 #                       4:[0,600],
 #                       6:[0,600],
-#                       7:[0,600]}
+#                       7:[0,600],
+#                       8:[0,600]}
 # subject_with_hand = 3
 # number_with_hand = [2,3,4,5,6]
 # frame_with_hand = {2:[0,600],
@@ -281,15 +308,21 @@ for n in range(len(number_without_hand)):
 
     
     # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    # ax.set_title('COM'+str(n+1))
+    # ax.set_title('Data correction comparison, subject: '+str(subject_without_hand)+'-'+str(n+1)+'without hand y com' )
     # ax.plot(Time, body_com[:,1], label='y_original')
     # ax.plot(Time, body_com_correction[:,1], label='y_correction')
-    # ax.plot(Time, center[:,1], label='centerline')
+    # ax.plot(Time, center[:,1], label='Curve fitting result')
     # ax.legend()
+    # ax.grid()
+    # ax.set_xlabel('Time(s)')
+    # ax.set_ylabel('Position(mm)')
     y_com_without_hand.append(body_com_correction[:,1])
     z_com_without_hand.append(body_com[:,2])
     Time_without_hand.append(Time)
     Size_without_hand.append(Time[-1])
+    
+    # xyz = plot_xyz_multiple(Time, [head_com,tb_com,rt_com,lt_com, body_com], ['head','trunk','r_thigh','l_thigh','body'])
+    # plot_xyz_multiple(Time, [HL,TTF,RTF,LTF], ['HL','TTF','RTF','LTF'])
 #%% With hand
 y_com_with_hand = list()
 z_com_with_hand = list()
@@ -346,14 +379,14 @@ for n in range(len(number_with_hand)):
     plot_xyz(Time, [body_com[:,0], body_com_correction[:,1], body_com[:,2]], 'Subject: '+str(subject_with_hand)+', COM_with_hand'+str(number_with_hand[n]))
     
     # body_com_correction2 = data_correction_2(body_com, rfo_com, lfo_com)
-    fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-    ax.set_title('COM'+str(n+1))
-    ax.plot(Time, body_com[:,1], label='y_original')
-    ax.plot(Time, body_com_correction[:,1], label='y_correction')
-    ax.plot(Time, center[:,1], label='centerline')
+    # fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+    # ax.set_title('COM'+str(n+1))
+    # ax.plot(Time, body_com[:,1], label='y_original')
+    # ax.plot(Time, body_com_correction[:,1], label='y_correction')
+    # ax.plot(Time, center[:,1], label='centerline')
     # ax.plot(Time, body_com_correction2[:,1], label='y')
     # ax.plot(Time, (rfo_com[:,1]+lfo_com[:,1])/2, label='y')
-    ax.legend()
+    # ax.legend()
     
     y_com_with_hand.append(body_com_correction[:,1])
     z_com_with_hand.append(body_com[:,2])
@@ -365,13 +398,16 @@ y_peak_without_hand = find_peak_value(y_com_without_hand)
 y_peak_with_hand = find_peak_value(y_com_with_hand)
 plot_multiple(y_com_without_hand, y_com_with_hand)
 
-fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
-ax.set_title('Y-Z')
-for i in range(len(Time_without_hand)):
-    ax.plot(y_com_without_hand[i], z_com_without_hand[i], label='Without'+str(number_without_hand[i]))
-for i in range(len(Time_with_hand)):
-    ax.plot(np.array(y_com_with_hand[i]).T, np.array(z_com_with_hand[i]).T, dashes=[6, 2], label = 'With'+str(number_with_hand[i]))
-ax.legend()
+# fig, ax = plt.subplots(figsize=(5, 2.7), layout='constrained')
+# ax.set_title('Y-Z')
+# for i in range(len(Time_without_hand)):
+#     ax.plot(y_com_without_hand[i], z_com_without_hand[i], label='Without'+str(number_without_hand[i]))
+# for i in range(len(Time_with_hand)):
+#     ax.plot(np.array(y_com_with_hand[i]).T, np.array(z_com_with_hand[i]).T, dashes=[6, 2], label = 'With'+str(number_with_hand[i]))
+# ax.legend()
+
+
+
 
 # fig = plt.figure()
 # ax = plt.figure().add_subplot(projection='3d')
